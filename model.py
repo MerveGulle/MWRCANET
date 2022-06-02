@@ -94,7 +94,7 @@ class HITVPCTeam:
 
 
 class Net(nn.Module):
-    def __init__(self, channels=1, filters_level1=96, filters_level2=256//2, filters_level3=256//2, n_rb=4*5):
+    def __init__(self, channels=2, filters_level1=96, filters_level2=256//2, filters_level3=256//2, n_rb=4*5):
         super(Net, self).__init__()
 
         self.head = HITVPCTeam.DWTForward()
