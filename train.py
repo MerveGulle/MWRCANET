@@ -41,7 +41,7 @@ loaders, datasets= sf.prepare_train_loaders(dataset,params,g)
 mask = dataset.mask.to(device)
 
 # 3) Create Model structure
-denoiser = model.ResNet().to(device)
+denoiser = model.Net().to(device)
 optimizer = torch.optim.Adam(denoiser.parameters(),lr=params['learning_rate'])
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.75)
 
@@ -64,7 +64,7 @@ for epoch in range(params['num_epoch']):
         loss = sf.L1L2Loss(xref, xk)
         
         if (torch.isnan(loss)):
-            torch.save(denoiser.state_dict(), 'model_t_' + f'_ResNet_{epoch:03d}'+ '.pt')
+            torch.save(denoiser.state_dict(), 'model_t_' + f'_MWCNN_{epoch:03d}'+ '.pt')
             print ('-----------------------------')
             print (f'Epoch [{epoch+1}/{params["num_epoch"]}], \
                    loss: {loss:.08f}, \
@@ -81,7 +81,7 @@ for epoch in range(params['num_epoch']):
         optimizer.step()
         
         if ((epoch+1)%10==0):
-          torch.save(denoiser.state_dict(), 'model_t_' + f'_ResNet_{epoch+1:03d}'+ '.pt')
+          torch.save(denoiser.state_dict(), 'model_t_' + f'_MWCNN_{epoch+1:03d}'+ '.pt')
     
     for i, (x0, xref, sens_map, index) in enumerate(loaders['valid_loader']):
         with torch.no_grad():
