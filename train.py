@@ -9,7 +9,7 @@ import sys
 print('Training code has been started.')
 
 ### HYPERPARAMETERS
-params = dict([('num_epoch', 10),
+params = dict([('num_epoch', 100),
                ('batch_size', 1),
                ('learning_rate', 1e-4),
                ('num_workers', 0),          # It should be 0 for Windows machines
@@ -17,7 +17,7 @@ params = dict([('num_epoch', 10),
                ('save_flag', False),
                ('use_cpu', False),
                ('acc_rate', 4),
-               ('K', 1)])   
+               ('K', 10)])   
 
 ### PATHS          
 train_data_path  = 'Knee_Coronal_PD_RawData_300Slices_Train.h5'
@@ -36,7 +36,7 @@ g.manual_seed(0)
 device = torch.device('cuda' if (torch.cuda.is_available() and (not(params['use_cpu']))) else 'cpu')
 
 # 2) Load Data
-dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=5)
+dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=300)
 loaders, datasets= sf.prepare_train_loaders(dataset,params,g)
 mask = dataset.mask.to(device)
 
