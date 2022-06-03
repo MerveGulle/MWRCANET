@@ -3,6 +3,34 @@ import torch.nn as nn
 import numpy as np
 import torch.nn.init as init
 import torch.nn.functional as F
+import SupportingFunctions as sf
+
+# x0  : initial solution
+# zn  : Output of nth denoiser block
+# L   : regularization coefficient
+# tol : tolerance for breaking the CG iteration
+def DC_layer(x0,zn,L,S,mask,tol=0,cg_iter=10):
+    _,Nx,Ny = x0.shape
+    # xn = torch.zeros((Nx, Ny), dtype=torch.cfloat)
+    xn = x0[0,:,:]*0
+    a  = torch.squeeze(x0 + L*zn)
+    p  = a
+    r  = a
+    for i in np.arange(cg_iter):
+        delta = torch.sum(r*torch.conj(r)).real/torch.sum(a*torch.conj(a)).real
+        if(delta<tol):
+            break
+        else:
+            p1 = p[None,:,:]
+            q  = torch.squeeze(sf.decode(sf.encode(p1,S,mask),S)) + L* p
+            t  = (torch.sum(r*torch.conj(r))/torch.sum(q*torch.conj(p)))
+            xn = xn + t*p 
+            rn = r  - t*q 
+            p  = rn + (torch.sum(rn*torch.conj(rn))/torch.sum(r*torch.conj(r)))*p
+            r  = rn
+            
+    return xn[None,:,:]
+
 class HITVPCTeam:
     r"""
         DWT and IDWT block written by: Yue Cao
@@ -94,7 +122,8 @@ class HITVPCTeam:
 
 
 class Net(nn.Module):
-    def __init__(self, channels=2, filters_level1=96, filters_level2=256//2, filters_level3=256//2, n_rb=4*5):
+    def __init__(self, channels=1, filters_level1=96, filters_level2=256//2, filters_level3=256//2, n_rb=4*5):
+    #def __init__(self, channels=2, filters_level1=16, filters_level2=16, filters_level3=16, n_rb=4*5):
         super(Net, self).__init__()
 
         self.head = HITVPCTeam.DWTForward()
@@ -137,18 +166,22 @@ class Net(nn.Module):
             nn.Conv2d(filters_level1, channels * 4, 3, 1, 1))
 
         self.tail = HITVPCTeam.DWTInverse()
+        
+        self.L = nn.Parameter(torch.tensor(0.05, requires_grad=True))
+    
 
     def forward(self, inputs):
-        c0 = inputs
-        c1 = self.head(c0)
+        inputs = sf.ch1to2(inputs[None,:,:,:]).float()
+        c1 = self.head(inputs)
         c2 = self.down1(c1)
         c3 = self.down2(c2)
-        c4 = self.down3(c3)
-        m = self.middle(c4)
-        c5 = self.up1(m) + c3
-        c6 = self.up2(c5) + c2
-        c7 = self.up3(c6) + c1
-        return self.tail(c7)
+        outputs = self.down3(c3)
+        outputs = self.middle(outputs)
+        outputs = self.up1(outputs) + c3
+        outputs = self.up2(outputs) + c2
+        outputs = self.up3(outputs) + c1
+        outputs = self.tail(outputs)
+        return self.L, sf.ch2to1(outputs)
 
     def _initialize_weights(self):
         for m in self.modules():
