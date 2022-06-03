@@ -122,7 +122,7 @@ class HITVPCTeam:
 
 
 class Net(nn.Module):
-    def __init__(self, channels=1, filters_level1=96, filters_level2=256//2, filters_level3=256//2, n_rb=4*5):
+    def __init__(self, channels=2, filters_level1=96, filters_level2=256//2, filters_level3=256//2, n_rb=4*5):
     #def __init__(self, channels=2, filters_level1=16, filters_level2=16, filters_level3=16, n_rb=4*5):
         super(Net, self).__init__()
 
@@ -171,8 +171,8 @@ class Net(nn.Module):
     
 
     def forward(self, inputs):
-        inputs = sf.ch1to2(inputs[None,:,:,:]).float()
-        c1 = self.head(inputs)
+        inputs = sf.ch1to2(inputs).float()
+        c1 = self.head(inputs[None,:,:,:])
         c2 = self.down1(c1)
         c3 = self.down2(c2)
         outputs = self.down3(c3)
@@ -181,7 +181,7 @@ class Net(nn.Module):
         outputs = self.up2(outputs) + c2
         outputs = self.up3(outputs) + c1
         outputs = self.tail(outputs)
-        return self.L, sf.ch2to1(outputs)
+        return self.L, sf.ch2to1(outputs[0])
 
     def _initialize_weights(self):
         for m in self.modules():
