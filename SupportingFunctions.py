@@ -50,8 +50,8 @@ def decode(x,S):
 # Normalised Mean Square Error (NMSE)
 # gives the nmse between x and xref
 def nmse(x,xref):
-    out1 = torch.sum(torch.real(x-xref)**2 + (torch.imag(x-xref)**2))
-    out2 = torch.sum(torch.real(xref-torch.mean(xref))**2 + (torch.imag(xref-torch.mean(xref))**2))
+    out1 = np.sum((x-xref)**2)
+    out2 = np.sum((xref)**2)
     return out1/out2
 
 class KneeDataset():
