@@ -1,4 +1,4 @@
-import model
+import my_model as model
 import numpy as np
 import torch
 import random
@@ -11,13 +11,7 @@ os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 print('Test code has been started.')
 
 ### HYPERPARAMETERS
-params = dict([('num_epoch', 100),
-               ('batch_size', 1),
-               ('learning_rate', 1e-4),
-               ('num_workers', 0),          # It should be 0 for Windows machines
-               ('exp_num', 7),              # CHANGE EVERYTIME
-               ('save_flag', False),
-               ('use_cpu', False),
+params = dict([('use_cpu', False),
                ('acc_rate', 4),
                ('K', 10)])   
 

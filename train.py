@@ -9,9 +9,9 @@ import sys
 print('Training code has been started.')
 
 ### HYPERPARAMETERS
-params = dict([('num_epoch', 100),
+params = dict([('num_epoch', 200),
                ('batch_size', 1),
-               ('learning_rate', 1e-4),
+               ('learning_rate', 5e-4),
                ('num_workers', 0),          # It should be 0 for Windows machines
                ('exp_num', 7),              # CHANGE EVERYTIME
                ('save_flag', False),
@@ -36,14 +36,14 @@ g.manual_seed(0)
 device = torch.device('cuda' if (torch.cuda.is_available() and (not(params['use_cpu']))) else 'cpu')
 
 # 2) Load Data
-dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=5)
+dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=100)
 loaders, datasets= sf.prepare_train_loaders(dataset,params,g)
 mask = dataset.mask.to(device)
 
 # 3) Create Model structure
 denoiser = model.Net().to(device)
 optimizer = torch.optim.Adam(denoiser.parameters(),lr=params['learning_rate'])
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.75)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.9)
 
 loss_arr       = np.zeros(params['num_epoch'])
 loss_arr_valid = np.zeros(params['num_epoch'])
